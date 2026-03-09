@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Hades",
+    "playtime_hours": 24.5,
+    "notes": "Focus on heat runs and bow aspects.",
+    "mods": ["UI Tweaks", "Boss HP Meter"]
+  },
+  {
+    "name": "Stardew Valley",
+    "playtime_hours": 86.0,
+    "notes": "Year 3 farm optimization save.",
+    "mods": ["Automate", "Lookup Anything"]
+  }
+]
