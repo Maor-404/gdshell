@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 
 from prompt_toolkit import PromptSession
@@ -15,6 +14,7 @@ from pygments.lexers.shell import BashLexer
 
 from gdsh.commands import CommandRegistry
 from gdsh.parser import parse_command
+from gdsh.rust_bridge import RustBackend
 
 
 class GDSHCompleter(Completer):
@@ -44,6 +44,8 @@ class GDShell:
 
     def __init__(self, project_root: Path) -> None:
         self.registry = CommandRegistry(project_root)
+        self.rust_backend = RustBackend(project_root)
+        self.rust_backend.ensure_available()
         history_path = project_root / ".gdsh_history"
         self.session = PromptSession(
             completer=GDSHCompleter(self.registry),
@@ -55,13 +57,13 @@ class GDShell:
     async def run(self) -> None:
         """Run the interactive shell until exit."""
         while True:
-            prompt = ANSI("\x1b[1;36mgdsh\x1b[0m:\x1b[1;33m%s\x1b[0m$ " % Path.cwd().name)
+            prompt = ANSI(f"\x1b[1;36mgdsh\x1b[0m:\x1b[1;33m{Path.cwd().name}\x1b[0m$ ")
             try:
                 line = await self.session.prompt_async(prompt)
             except (EOFError, KeyboardInterrupt):
                 break
 
-            command, args = parse_command(line)
+            command, args = parse_command(line, backend=self.rust_backend)
             if not command:
                 continue
             try:
@@ -84,12 +86,4 @@ class GDShell:
         except ValueError as exc:
             if "Unknown command" not in str(exc):
                 raise
-
-        proc = await asyncio.create_subprocess_exec(
-            command,
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT,
-        )
-        out, _ = await proc.communicate()
-        return out.decode("utf-8", errors="replace").strip()
+        return await self.rust_backend.exec_external(command, args)

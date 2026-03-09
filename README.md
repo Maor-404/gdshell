@@ -1,6 +1,6 @@
 # GDShell
 
-GDShell is a Python-powered hybrid shell + Textual dashboard designed for gamers and developers.
+GDShell is a Python-powered hybrid shell + Textual dashboard designed for gamers and developers with a required Rust backend for parsing and external command execution.
 
 ## Features
 
@@ -17,6 +17,9 @@ GDShell is a Python-powered hybrid shell + Textual dashboard designed for gamers
   - `dashboard`
 - Command history, colored prompt, autocomplete, syntax highlighting
 - Async command execution (internal and external commands)
+- Rust backend (`rust_backend/`) used by Python shell for:
+  - command-line parsing
+  - external process execution
 - Textual dashboard with panel layout and keyboard actions
 - JSON-backed game library management
 - Ping latency sampling with color-coded bars
@@ -30,6 +33,7 @@ GDShell is a Python-powered hybrid shell + Textual dashboard designed for gamers
 gdshell/
 ├── gdsh/
 │   ├── shell.py
+│   ├── rust_bridge.py
 │   ├── commands.py
 │   ├── parser.py
 │   └── utils.py
@@ -46,6 +50,9 @@ gdshell/
 │   ├── ping.py
 │   ├── sysinfo.py
 │   └── idea.py
+├── rust_backend/
+│   ├── Cargo.toml
+│   └── src/main.rs
 ├── data/
 │   └── games.json
 ├── main.py
@@ -54,12 +61,19 @@ gdshell/
 
 ## Requirements
 
-Python 3.10+
+- Python 3.10+
+- Rust toolchain (`cargo`) required
 
-Install dependencies:
+Install Python dependencies:
 
 ```bash
 pip install prompt_toolkit textual psutil pygments
+```
+
+Build Rust backend:
+
+```bash
+cargo build --release --manifest-path rust_backend/Cargo.toml
 ```
 
 ## Usage
@@ -78,6 +92,7 @@ gdsh$ dashboard
 
 ## Notes
 
-- Unknown commands fall back to direct executable invocation.
+- GDShell will attempt to build `rust_backend` automatically if `gdsh-rs` is missing.
+- Unknown commands are executed via the Rust backend.
 - Game data is persisted in `data/games.json`.
 - Dashboard keys: `q` quit, `r` refresh, `i` generate new game idea.
